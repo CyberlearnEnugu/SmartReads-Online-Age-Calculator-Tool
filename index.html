@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartReads Age Calculator</title>
+    <style>
+        /* --- CSS VARIABLES & THEME --- */
+        :root {
+            --primary: #FF4500; /* Orange Red */
+            --primary-hover: #e03e00;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #000000;
+            --text-muted: #555555;
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --radius: 16px;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --anim-speed: 0.4s;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            padding-bottom: 50px;
+        }
+
+        /* --- LAYOUT & HEADER --- */
+        .container {
+            max-width: 800px; /* Default Blog Width */
+            margin: 0 auto;
+            padding: 20px;
+            transition: max-width 0.4s ease;
+        }
+
+        /* Class for Full Screen Mode */
+        .container.full-width {
+            max-width: 96%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 69, 0, 0.1);
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 1.8rem;
+        }
+
+        h1 span { color: var(--primary); }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.4rem;
+            color: var(--text-main);
+            transition: color 0.3s;
+        }
+        
+        .icon-btn:hover { color: var(--primary); }
+
+        /* --- CARD UI --- */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        .card:hover { transform: translateY(-2px); }
+
+        /* --- INPUT SECTION (DROPDOWNS) --- */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Date Selector Layout */
+        .date-select-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .date-select-row select {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--card-bg);
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.3s;
+            cursor: pointer;
+            appearance: none; /* Remove default arrow in some browsers */
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FF4500%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right .7em top 50%;
+            background-size: .65em auto;
+            padding-right: 1.5em;
+        }
+
+        select:focus { border-color: var(--primary); }
+
+        /* General Inputs */
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--card-bg);
+            color: var(--text-main);
+            outline: none;
+        }
+        input:focus { border-color: var(--primary); }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button.btn-primary, button.btn-secondary {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+        }
+
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-primary:active { transform: scale(0.98); }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* --- RESULTS ANIMATION --- */
+        .hidden { display: none; }
+        
+        .fade-in {
+            animation: fadeIn var(--anim-speed) ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- RESULT GRIDS --- */
+        .result-header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px dashed #ddd;
+            padding-bottom: 20px;
+        }
+        
+        .big-age {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        .age-category-tag {
+            display: inline-block;
+            background: var(--text-main);
+            color: var(--card-bg);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            text-align: center;
+        }
+
+        .stat-box {
+            background: rgba(255, 69, 0, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .stat-val {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* --- ZODIAC & EXTRAS --- */
+        .extras-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .extra-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .extra-icon {
+            font-size: 2rem;
+            width: 50px;
+            text-align: center;
+        }
+
+        .milestone-list li {
+            list-style: none;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .milestone-date { font-weight: bold; color: var(--primary); }
+
+        /* --- SAVED PROFILES --- */
+        .saved-list { margin-top: 10px; }
+        .saved-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .saved-info h4 { margin-bottom: 4px; }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            margin-left: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            background: var(--card-bg);
+            color: var(--text-main);
+        }
+
+        /* --- PRINT/SHARE --- */
+        @media print {
+            body { background: white; color: black; }
+            .btn-group, .input-section, .header-controls, .saved-section { display: none; }
+            .card { box-shadow: none; border: 1px solid #ccc; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .big-age { font-size: 2rem; }
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+            .date-select-row { flex-direction: column; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="appContainer">
+    <header>
+        <h1>SmartReads <span>AgeCalc</span></h1>
+        <div class="header-controls">
+            <!-- Full Screen Toggle -->
+            <button class="icon-btn" onclick="toggleFullScreen()" title="Toggle Full Screen">⛶</button>
+            <!-- Theme Toggle -->
+            <button class="icon-btn" onclick="toggleTheme()" title="Toggle Dark Mode">🌓</button>
+        </div>
+    </header>
+
+    <!-- INPUT SECTION -->
+    <div class="card input-section">
+        <div class="input-group">
+            <label>Date of Birth</label>
+            <div class="date-select-row">
+                <select id="dob-day"></select>
+                <select id="dob-month"></select>
+                <select id="dob-year"></select>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Calculate Age At</label>
+            <div class="date-select-row">
+                <select id="target-day"></select>
+                <select id="target-month"></select>
+                <select id="target-year"></select>
+            </div>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn-primary" onclick="calculateAge()">Calculate Age</button>
+            <button class="btn-secondary" onclick="resetApp()">Reset</button>
+        </div>
+    </div>
+
+    <!-- MAIN RESULTS (Hidden initially) -->
+    <div id="resultContainer" class="hidden">
+        
+        <!-- AGE SUMMARY CARD -->
+        <div class="card fade-in" style="animation-delay: 0.1s;">
+            <div class="result-header">
+                <div class="age-category-tag" id="ageCategory">Adult</div>
+                <div class="big-age" id="ageYMD">0 Years</div>
+                <p style="color: var(--text-muted); margin-top:5px;">Exact Age</p>
+            </div>
+            
+            <div class="grid-3">
+                <div class="stat-box">
+                    <div class="stat-val" id="totalMonths">0</div>
+                    <div class="stat-label">Total Months</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="totalWeeks">0</div>
+                    <div class="stat-label">Total Weeks</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="totalDays">0</div>
+                    <div class="stat-label">Total Days</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DETAILED TIME CARD -->
+        <div class="card fade-in" style="animation-delay: 0.2s;">
+            <h3>⏱ Time Lived</h3>
+            <div class="grid-3" style="margin-top: 15px;">
+                <div class="stat-box">
+                    <div class="stat-val" id="totalHours">0</div>
+                    <div class="stat-label">Hours</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="totalMinutes">0</div>
+                    <div class="stat-label">Minutes</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="totalSeconds">0</div>
+                    <div class="stat-label">Seconds</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ZODIAC & BIRTHDAY CARD -->
+        <div class="card fade-in" style="animation-delay: 0.3s;">
+            <h3>🌟 Astrology & Birthday</h3>
+            <div class="extras-grid">
+                <div class="extra-item">
+                    <div class="extra-icon">🎂</div>
+                    <div>
+                        <strong>Next Birthday</strong>
+                        <div id="nextBdayDays" style="color:var(--primary)">0 Days left</div>
+                        <small id="nextBdayDayOfWeek" style="color:var(--text-muted)">Tuesday</small>
+                    </div>
+                </div>
+                <div class="extra-item">
+                    <div class="extra-icon" id="zodiacIcon">♈</div>
+                    <div>
+                        <strong>Western Zodiac</strong>
+                        <div id="zodiacName">Aries</div>
+                    </div>
+                </div>
+                <div class="extra-item">
+                    <div class="extra-icon" id="chineseIcon">🐉</div>
+                    <div>
+                        <strong>Chinese Zodiac</strong>
+                        <div id="chineseZodiac">Dragon</div>
+                    </div>
+                </div>
+                <div class="extra-item">
+                    <div class="extra-icon">💎</div>
+                    <div>
+                        <strong>Birthstone</strong>
+                        <div id="birthstone">Diamond</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MILESTONES CARD -->
+        <div class="card fade-in" style="animation-delay: 0.4s;">
+            <h3>🚀 Life Milestones</h3>
+            <ul class="milestone-list" id="milestonesList">
+                <!-- Populated via JS -->
+            </ul>
+        </div>
+
+        <!-- ACTIONS CARD -->
+        <div class="card fade-in" style="animation-delay: 0.5s;">
+            <h3>💾 Actions</h3>
+            <div class="input-group" style="margin-top:10px;">
+                <input type="text" id="saveName" placeholder="Enter name (e.g. Mom, Best Friend)">
+            </div>
+            <div class="btn-group">
+                <button class="btn-primary" onclick="saveCurrentDate()">Save Date</button>
+                <button class="btn-secondary" onclick="window.print()">Print / PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAVED LIST SECTION -->
+    <div class="card saved-section">
+        <h3>📂 Saved People</h3>
+        <div id="savedList" class="saved-list">
+            <p style="color:var(--text-muted); padding:10px;">No saved dates yet.</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- INIT DATE SELECTORS ---
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const currentYear = new Date().getFullYear();
+
+    function populateSelectors(prefix) {
+        const daySel = document.getElementById(`${prefix}-day`);
+        const monthSel = document.getElementById(`${prefix}-month`);
+        const yearSel = document.getElementById(`${prefix}-year`);
+
+        // Years (1900 - Current + 20)
+        for (let y = currentYear + 20; y >= 1900; y--) {
+            let opt = new Option(y, y);
+            yearSel.add(opt);
+        }
+
+        // Months
+        monthNames.forEach((m, i) => {
+            let opt = new Option(m, i); // Value is 0-11
+            monthSel.add(opt);
+        });
+
+        // Set listeners to update days based on month/year
+        monthSel.addEventListener('change', () => updateDays(prefix));
+        yearSel.addEventListener('change', () => updateDays(prefix));
+
+        // Initial Day Population
+        updateDays(prefix);
+    }
+
+    function updateDays(prefix) {
+        const daySel = document.getElementById(`${prefix}-day`);
+        const monthSel = document.getElementById(`${prefix}-month`);
+        const yearSel = document.getElementById(`${prefix}-year`);
+
+        const year = parseInt(yearSel.value);
+        const month = parseInt(monthSel.value); // 0-11
+        const prevDay = parseInt(daySel.value) || 1;
+
+        // Get days in month (handling leap years)
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Clear current options
+        daySel.innerHTML = '';
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            daySel.add(new Option(d, d));
+        }
+
+        // Restore selection if possible, else select max
+        if (prevDay <= daysInMonth) {
+            daySel.value = prevDay;
+        } else {
+            daySel.value = daysInMonth;
+        }
+    }
+
+    function setSelectorDate(prefix, dateObj) {
+        document.getElementById(`${prefix}-year`).value = dateObj.getFullYear();
+        document.getElementById(`${prefix}-month`).value = dateObj.getMonth();
+        updateDays(prefix); // Refresh days count
+        document.getElementById(`${prefix}-day`).value = dateObj.getDate();
+    }
+
+    function getSelectorDate(prefix) {
+        const y = parseInt(document.getElementById(`${prefix}-year`).value);
+        const m = parseInt(document.getElementById(`${prefix}-month`).value);
+        const d = parseInt(document.getElementById(`${prefix}-day`).value);
+        return new Date(y, m, d);
+    }
+
+    // Initialize logic
+    populateSelectors('dob');
+    populateSelectors('target');
+    
+    // Default Target = Today
+    setSelectorDate('target', new Date());
+    // Default DOB = Clear/Default (Let's set to 2000 for UX)
+    document.getElementById('dob-year').value = 2000;
+    updateDays('dob');
+
+    // --- APP LOGIC ---
+
+    // Toggle Theme
+    function toggleTheme() {
+        const body = document.body;
+        if (body.getAttribute('data-theme') === 'dark') {
+            body.removeAttribute('data-theme');
+        } else {
+            body.setAttribute('data-theme', 'dark');
+        }
+    }
+
+    // Toggle Full Screen Width
+    function toggleFullScreen() {
+        const container = document.getElementById('appContainer');
+        container.classList.toggle('full-width');
+    }
+
+    // Main Calculate Function
+    function calculateAge(inputDate = null) {
+        
+        let dob, target;
+
+        if(inputDate) {
+            // If triggered from Saved List
+            dob = new Date(inputDate);
+            target = getSelectorDate('target');
+            // Update UI to match loaded date
+            setSelectorDate('dob', dob);
+        } else {
+            // Triggered manually
+            dob = getSelectorDate('dob');
+            target = getSelectorDate('target');
+        }
+
+        if (dob > target) {
+            alert("Birth date cannot be in the future relative to the target date!");
+            return;
+        }
+
+        // 1. Exact Age Calculation (Years, Months, Days)
+        let years = target.getFullYear() - dob.getFullYear();
+        let months = target.getMonth() - dob.getMonth();
+        let days = target.getDate() - dob.getDate();
+
+        if (days < 0) {
+            months--;
+            const prevMonth = new Date(target.getFullYear(), target.getMonth(), 0);
+            days += prevMonth.getDate();
+        }
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        // Display YMD
+        document.getElementById('ageYMD').innerText = `${years} Years, ${months} Months, ${days} Days`;
+        document.getElementById('ageCategory').innerText = getAgeCategory(years);
+
+        // 2. Total Time Units
+        const diffTime = Math.abs(target - dob);
+        const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const totalWeeks = Math.floor(totalDays / 7);
+        const totalMonths = (years * 12) + months; // approx
+        
+        // Detailed
+        const totalSeconds = Math.floor(diffTime / 1000);
+        const totalMinutes = Math.floor(diffTime / (1000 * 60));
+        const totalHours = Math.floor(diffTime / (1000 * 60 * 60));
+
+        // Format Numbers with Commas
+        const fmt = (n) => n.toLocaleString();
+
+        document.getElementById('totalMonths').innerText = fmt(totalMonths);
+        document.getElementById('totalWeeks').innerText = fmt(totalWeeks);
+        document.getElementById('totalDays').innerText = fmt(totalDays);
+        document.getElementById('totalHours').innerText = fmt(totalHours);
+        document.getElementById('totalMinutes').innerText = fmt(totalMinutes);
+        document.getElementById('totalSeconds').innerText = fmt(totalSeconds);
+
+        // 3. Next Birthday
+        const nextBday = new Date(target.getFullYear(), dob.getMonth(), dob.getDate());
+        // Fix for Feb 29 on non-leap years (set to March 1)
+        if (dob.getMonth() === 1 && dob.getDate() === 29 && nextBday.getMonth() !== 1) {
+            nextBday.setMonth(2);
+            nextBday.setDate(1);
+        }
+
+        if (nextBday < target) {
+            nextBday.setFullYear(target.getFullYear() + 1);
+        }
+        
+        // Check leap year again for next bday
+        if (dob.getMonth() === 1 && dob.getDate() === 29) {
+             const isLeap = (y) => (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+             if(!isLeap(nextBday.getFullYear())) {
+                 nextBday.setMonth(2); nextBday.setDate(1);
+             } else {
+                 nextBday.setMonth(1); nextBday.setDate(29);
+             }
+        }
+
+        const diffBday = nextBday - target;
+        const daysToBday = Math.ceil(diffBday / (1000 * 60 * 60 * 24));
+        
+        const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        
+        document.getElementById('nextBdayDays').innerText = daysToBday === 365 || daysToBday === 366 || daysToBday === 0 ? "Happy Birthday Today! 🎉" : `${daysToBday} Days Left`;
+        document.getElementById('nextBdayDayOfWeek').innerText = `On a ${weekdays[nextBday.getDay()]}`;
+
+        // 4. Zodiac & Birthstone
+        const zodiac = getZodiacSign(dob.getDate(), dob.getMonth() + 1);
+        document.getElementById('zodiacName').innerText = zodiac.name;
+        document.getElementById('zodiacIcon').innerText = zodiac.icon;
+
+        const chinese = getChineseZodiac(dob.getFullYear());
+        document.getElementById('chineseZodiac').innerText = chinese.name;
+        document.getElementById('chineseIcon').innerText = chinese.icon;
+
+        document.getElementById('birthstone').innerText = getBirthstone(dob.getMonth() + 1);
+
+        // 5. Milestones
+        generateMilestones(dob);
+
+        // Show Results
+        document.getElementById('resultContainer').classList.remove('hidden');
+        
+        // Scroll to results on mobile
+        if(window.innerWidth < 600 && !inputDate) {
+            document.getElementById('resultContainer').scrollIntoView({behavior: 'smooth'});
+        }
+    }
+
+    // Helper: Age Category
+    function getAgeCategory(years) {
+        if (years < 2) return "Infant";
+        if (years < 13) return "Child";
+        if (years < 20) return "Teenager";
+        if (years < 30) return "Young Adult";
+        if (years < 60) return "Adult";
+        if (years < 80) return "Senior";
+        return "Elderly";
+    }
+
+    // Helper: Western Zodiac
+    function getZodiacSign(day, month) {
+        const zodiacs = [
+            { name: "Capricorn", icon: "♑", start: [12, 22], end: [1, 19] },
+            { name: "Aquarius", icon: "♒", start: [1, 20], end: [2, 18] },
+            { name: "Pisces", icon: "♓", start: [2, 19], end: [3, 20] },
+            { name: "Aries", icon: "♈", start: [3, 21], end: [4, 19] },
+            { name: "Taurus", icon: "♉", start: [4, 20], end: [5, 20] },
+            { name: "Gemini", icon: "♊", start: [5, 21], end: [6, 20] },
+            { name: "Cancer", icon: "♋", start: [6, 21], end: [7, 22] },
+            { name: "Leo", icon: "♌", start: [7, 23], end: [8, 22] },
+            { name: "Virgo", icon: "♍", start: [8, 23], end: [9, 22] },
+            { name: "Libra", icon: "♎", start: [9, 23], end: [10, 22] },
+            { name: "Scorpio", icon: "♏", start: [10, 23], end: [11, 21] },
+            { name: "Sagittarius", icon: "♐", start: [11, 22], end: [12, 21] },
+            { name: "Capricorn", icon: "♑", start: [12, 22], end: [12, 31] }
+        ];
+
+        // Simple check
+        if ((month == 1 && day <= 19) || (month == 12 && day >= 22)) return zodiacs[0];
+        
+        for (let z of zodiacs) {
+            if ((month == z.start[0] && day >= z.start[1]) || (month == z.end[0] && day <= z.end[1])) {
+                return z;
+            }
+        }
+        return zodiacs[0];
+    }
+
+    // Helper: Chinese Zodiac
+    function getChineseZodiac(year) {
+        const animals = [
+            { name: "Monkey", icon: "🐒" },
+            { name: "Rooster", icon: "🐓" },
+            { name: "Dog", icon: "🐕" },
+            { name: "Pig", icon: "🐖" },
+            { name: "Rat", icon: "🐀" },
+            { name: "Ox", icon: "🐂" },
+            { name: "Tiger", icon: "🐅" },
+            { name: "Rabbit", icon: "🐇" },
+            { name: "Dragon", icon: "🐉" },
+            { name: "Snake", icon: "🐍" },
+            { name: "Horse", icon: "🐎" },
+            { name: "Goat", icon: "🐐" }
+        ];
+        return animals[year % 12];
+    }
+
+    // Helper: Birthstone
+    function getBirthstone(month) {
+        const stones = ["Garnet", "Amethyst", "Aquamarine", "Diamond", "Emerald", "Pearl", "Ruby", "Peridot", "Sapphire", "Opal", "Topaz", "Turquoise"];
+        return stones[month - 1];
+    }
+
+    // Helper: Generate Milestones
+    function generateMilestones(dob) {
+        const list = document.getElementById('milestonesList');
+        list.innerHTML = "";
+        
+        // Define milestones in days
+        const milestones = [
+            { label: "10,000 Days Old", days: 10000 },
+            { label: "20,000 Days Old", days: 20000 },
+            { label: "1 Billion Seconds (approx 31.7 years)", days: 11574 }, 
+            { label: "500,000 Hours", days: 20833 }
+        ];
+
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+
+        milestones.forEach(m => {
+            const mDate = new Date(dob);
+            mDate.setDate(dob.getDate() + m.days);
+            
+            const isPast = mDate < new Date();
+            const color = isPast ? 'var(--text-muted)' : 'var(--text-main)';
+            const check = isPast ? '✅' : '⏳';
+
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span style="color:${color}">${check} ${m.label}</span>
+                <span class="milestone-date">${mDate.toLocaleDateString(undefined, options)}</span>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    // --- SAVED DATES LOGIC (LocalStorage) ---
+    function saveCurrentDate() {
+        const dobDate = getSelectorDate('dob');
+        const name = document.getElementById('saveName').value;
+
+        if(!name) {
+            alert("Please enter a Name to save this date.");
+            return;
+        }
+
+        // Convert to string for storage
+        const dobVal = dobDate.toISOString(); 
+
+        let saved = JSON.parse(localStorage.getItem('smartReadsAgeCalc')) || [];
+        saved.push({ name: name, date: dobVal });
+        localStorage.setItem('smartReadsAgeCalc', JSON.stringify(saved));
+        
+        document.getElementById('saveName').value = "";
+        renderSavedList();
+        alert("Date saved successfully!");
+    }
+
+    function renderSavedList() {
+        const list = document.getElementById('savedList');
+        const saved = JSON.parse(localStorage.getItem('smartReadsAgeCalc')) || [];
+        
+        if (saved.length === 0) {
+            list.innerHTML = '<p style="color:var(--text-muted); padding:10px;">No saved dates yet.</p>';
+            return;
+        }
+
+        list.innerHTML = "";
+        saved.forEach((item, index) => {
+            const d = new Date(item.date);
+            const friendlyDate = d.toLocaleDateString();
+
+            const div = document.createElement('div');
+            div.className = 'saved-item';
+            div.innerHTML = `
+                <div class="saved-info">
+                    <h4>${item.name}</h4>
+                    <small>${friendlyDate}</small>
+                </div>
+                <div>
+                    <button class="btn-sm" style="border: 1px solid var(--primary); color:var(--primary)" onclick="calculateAge('${item.date}')">Load</button>
+                    <button class="btn-sm" onclick="deleteSaved(${index})" style="color:red; border-color:red;">✖</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function deleteSaved(index) {
+        let saved = JSON.parse(localStorage.getItem('smartReadsAgeCalc')) || [];
+        saved.splice(index, 1);
+        localStorage.setItem('smartReadsAgeCalc', JSON.stringify(saved));
+        renderSavedList();
+    }
+
+    function resetApp() {
+        setSelectorDate('target', new Date());
+        document.getElementById('dob-year').value = 2000;
+        document.getElementById('dob-month').value = 0;
+        updateDays('dob');
+        document.getElementById('dob-day').value = 1;
+        document.getElementById('resultContainer').classList.add('hidden');
+    }
+
+    // Init
+    renderSavedList();
+
+</script>
+
+</body>
+</html>
